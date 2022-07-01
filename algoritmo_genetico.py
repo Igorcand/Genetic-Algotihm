@@ -1,219 +1,192 @@
 from random import random 
 
 #A classe profuto vai instanciar as variáveis dos produtos, que são nome, espaço ocupado em m3 e o valor em reais
-class Produto():
-    def __init__(self, nome, espaco, valor):
-        self.nome = nome
-        self.espaco = espaco
-        self.valor = valor 
+class Product():
+    def __init__(self, name, space, value):
+        self.name = name
+        self.space = space
+        self.value = value 
     
-class Individuo():
-    def __init__(self, espaco, valores, limite_espaco, geracao=0):
+class Individual():
+    def __init__(self, space, value, space_limit, generation=0):
         #estaço é o volume ocupado no momento
-        self.espaco = espaco
+        self.space = space
         #valor é R$
-        self.valores = valores
+        self.value = value
         #qual o limite de volume, no exemplo, não pode passar de 3 m3
-        self.limite_espaco = limite_espaco
+        self.space_limit = space_limit
         #Cada individuo tem uma nota, se é bom ou não
-        self.nota_avaliacao = 0
+        self.note_avaliation = 0
         #Espaço usado é para gerar a avaliação
-        self.espaco_usado = 0
-        self.geracao = geracao
-        self.cromossomo = []
+        self.space_used = 0
+        self.generation = generation
+        self.chromossome = []
 
         #Inicialização aleatória do cromossomo com 14 genes(total de produtos)
-        for i in range(len(espaco)):
+        for i in range(len(space)):
             if random() < 0.5:
-                self.cromossomo.append('0')
+                self.chromossome.append('0')
             else:
-                self.cromossomo.append('1')
+                self.chromossome.append('1')
 
     #fitness - medida de qualidade do cromossomo e se o cromossoom tem uma boa avaliação para saber se pode ser usado como referencia para as próximas gerações
-    def avaliacao(self):
-        nota = 0
-        soma_espacos = 0 
+    def fitness(self):
+        note = 0
+        sum_spaces = 0 
         #Ao percorrer o cromossomo, faço uma validação de acordo com o cromossomo, para saber qual o espaço usado e qual a nota(valor de carga)
         #[0, 1, ,1 ,1, 0, 0, 1]
-        for i in range(len(self.cromossomo)):
-            if self.cromossomo[i] == '1':
-                nota += self.valores[i]
-                soma_espacos += self.espaco[i]
+        for i in range(len(self.chromossome)):
+            if self.chromossome[i] == '1':
+                note += self.value[i]
+                sum_spaces += self.space[i]
         #Se o espaço usado no momento for maior que o espaço total, o individuo não serve para o problema, então vamos rebaixar ele
-        if soma_espacos > self.limite_espaco:
-            nota = 1 
-        self.nota_avaliacao = nota 
-        self.espaco_usado = soma_espacos 
+        if sum_spaces > self.space_limit:
+            note = 1 
+        self.note_avaliation = note
+        self.space_used = sum_spaces 
     
     #crossover é a reprodução, onde será juntado dois genes
-    def crossover(self, outro_individuo):
+    def crossover(self, other_individual):
         #random vai retornar um valor entre 0 e 1
         #multipplicar pelo tamanho do cromossomo e aredondar para achar o ponto de corte do cromossomo
-        corte = round(random() * len(self.cromossomo))
-        #[0, 0, 0, |1, 1, 1, 0, 1, 0]    = [0, 0, 0, 1, 1, 1, 0, 1, 0]
-        #[0, 1, 0, |1, 1, 1, 0, 1, 0]    = [0, 1, 0, 1, 1, 1, 0, 1, 0]
+        cut = round(random() * len(self.chromossome))
 
-        #[0, 0, 0, |0, 1, 1, 0, 0, 1]
-        #[0, 0, 1, |1, 1, 1, 0, 1, 0]
+        son1 = other_individual.chromossome[0:cut] + self.chromossome[cut::]
+        son2 = self.chromossome[0:cut] + other_individual.chromossome[cut::]
 
-        filho1 = outro_individuo.cromossomo[0:corte] + self.cromossomo[corte::]
-        filho2 = self.cromossomo[0:corte] + outro_individuo.cromossomo[corte::]
-
-
-        filhos = [Individuo(self.espaco, self.valores, self.limite_espaco, self.geracao +1), Individuo(self.espaco, self.valores, self.limite_espaco, self.geracao +1) ]
+        sons = [Individual(self.space, self.value, self.space_limit, self.generation +1), Individual(self.space, self.value, self.space_limit, self.generation +1) ]
 
         #Inicializando o cromossomo apos a reprodução, que no caso é a interação dos dois cromossomos acima
-        filhos[0].cromossomo = filho1
-        filhos[1].cromossomo = filho2
+        sons[0].chromossome = son1
+        sons[1].chromossome = son2
 
-        return filhos 
+        return sons 
 
     #A mutação 
-    def mutacao(self, taxa_mutacao):
+    def mutation(self, mutation_rate):
         #Ao percorrer os cromossomos, a cada indice criamos uma possivel chance de haver uma mutação, no qual, aleatoriamente o cromossomo vai mudar
-        #se NONE
-        for i in range(len(self.cromossomo)):
-            if random() < taxa_mutacao:
-                if self.cromossomo[i] == '1':
-                    self.cromossomo[i] = '0'
+        
+        for i in range(len(self.chromossome)):
+            if random() < mutation_rate:
+                if self.chromossome[i] == '1':
+                    self.chromossome[i] = '0'
                 else:
-                    self.cromossomo[i] = '1'
+                    self.chromossome[i] = '1'
         
         return self
 
 
 #Essa classe que vai comandar o algoritmo
 class AlgoritmoGenetico():
-    def __init__(self, tamanho_populacao):
+    def __init__(self, size_population):
         #quantos individuos vamos usar
-        self.tamanho_populacao = tamanho_populacao
+        self.size_population = size_population
         #Quais os são individuos
-        self.populacao = []
-        self.geracao = 0
-        self.melhor_solucao = 0
-        self.soma_roleta = 0
+        self.population = []
+        self.generation= 0
+        self.best_solution = 0
+        self.sum_roulette = 0
     
     #cria a quantidade de indiviuos de acordo com parametro
-    def inicializa_populacao(self, espacos, valores, limite_espacos):
-        for i in range(self.tamanho_populacao):
+    def inicialize_population(self, spaces, values, space_limit):
+        for i in range(self.size_population):
             #espaços e valores são iguais para todos, apenas o cromossomo que é diferente porque é aleatorio
-            self.populacao.append(Individuo(espacos, valores, limite_espacos))
+            self.population.append(Individual(spaces, values, space_limit))
         #A melhor solucao é o primeiro indivio
-        self.melhor_solucao = self.populacao[0]
+        self.best_solution = self.population[0]
 
     #Apenas para ordenar de acordo com melhor nota
-    def ordena_populacao(self):
-        self.populacao = sorted(self.populacao, key= lambda populacao: populacao.nota_avaliacao,reverse=True)
+    def order_population(self):
+        self.population = sorted(self.population, key= lambda population: population.note_avaliation,reverse=True)
 
     #O melhor indivio será o primeiro da lista porque foi ordenado 
-    def melhor_individuo(self, individuo):
-        if individuo.nota_avaliacao > self.melhor_solucao.nota_avaliacao:
-            self.melhor_solucao = individuo
+    def better_individual(self, individual):
+        if individual.note_avaliation > self.best_solution.note_avaliation:
+            self.best_solution = individual
     
     #Apens somar a nota de todos os individuos da populacao para ver a melhora dela no decorrer das gerações
-    def soma_avaliacao(self):
-        soma = 0
-        for individuo in self.populacao:
-            soma += individuo.nota_avaliacao
-        self.soma_roleta = soma
-        return soma
+    def sum_avaliation(self):
+        sum = 0
+        for individual in self.population:
+            sum += individual.note_avaliation
+        self.sum_roulette = sum
+        return sum
 
     #Essa função vai selecionar dois pais para fazer a reprodução e gerar um individuo melhor
-    def seleciona_pai(self, soma_avaliacao):
-        #print(f'SELECIONA PAI INICIADO')
+    def seleciona_pai(self, sum_avaliation):
         #soma avaliação é a oma das avaliações de todos os indiviuos da população
         #método da roleta viciada
-        # c = 0
-        # for i in self.populacao:
-        #     print(f'indiviuo {i.nota_avaliacao} - indice {c}')
-        #     c+= 1
-        #print(f'soma_avaliacao = {soma_avaliacao}')
         #a variavel pai indica qual o indice do melhor pai na lista de população
-        pai = -1
+        dad = -1
         #valor sorteado será um valor randomico
-        valor_sorteado = random() * soma_avaliacao # 60000
-        #print(f'valor_sorteado = {valor_sorteado}')
-        soma = 0 #13000/ 34000 / 51000
+        value_drawn = random() * sum_avaliation 
+        sum = 0 
         i = 0
         #enquanto o indice for menor que o tamaho da população e a soma menor que o valor sorteado
         #Teoricamente, vamos rodando a roleta até ela parar
-        while i < len(self.populacao) and soma < valor_sorteado:
-            # 0 - valor 13000
-            # 1 - valor 21000
-            # 2 - valor 1
-            # 3 - valor 1
-            # 4 - valor 17000
-            # 1 - 6000
-
-            #ruim = 40000
-
-
-            #[1 - 30000, 2 - 27000, 3-25000, 4-20000, 5-15000, 6 - 10000]
-            #pai1 - 3
-            #print(f'individuo = {self.populacao[i].nota_avaliacao}  --- soma = {soma}')
-            soma += self.populacao[i].nota_avaliacao
-            pai  += 1
+        while i < len(self.population) and sum < value_drawn:
+            sum += self.population[i].note_avaliation
+            dad  += 1
             i += 1
-        #print(f'pai escolhido foi o {pai}')
-        #print(f'finalizou')
-        return pai
+        return dad
 
-    def visualiza_geracao(self):
-        melhor = self.populacao[0]
-        print(f'Geracao = {self.populacao[0].geracao} - soma roleta = {round(self.soma_roleta, 1)} - melhor geração  = {round(melhor.nota_avaliacao, 1)}')
-        #print(f'Valor = {melhor.nota_avaliacao}')
-        #print(f'Espaco = {melhor.espaco}')
-        #print(f'Cromossomo = {melhor.cromossomo}')
+    def show_generation(self):
+        better = self.population[0]
+        print('--------')
+        print(f'Generation = {self.population[0].generation}')
+        print(f'Value = {better.note_avaliation}')
+        print(f'Chromossome = {better.chromossome}')
+        print('--------')
 
 
-    def resolver(self, taxa_mutacao, numero_geracoes, espacos, valores, limite_espaco):
+    def run(self, mutation_rate, generations, spaces, values, space_limit):
         #inicia a populacao com as variaveis dos items
-        self.inicializa_populacao(espacos, valores, limite_espaco)
+        self.inicialize_population(spaces, values, space_limit)
 
         #gera uma avaliação individual para cada individuo de acordo com o desempenho
-        for individuo in self.populacao:
-            individuo.avaliacao()
+        for individual in self.population:
+            individual.fitness()
         
         #ordena
-        self.ordena_populacao()
+        self.order_population()
 
-        self.visualiza_geracao()
+        self.show_generation()
 
         #Fazendo um loop pelo total de gerações
-        for geracao in range(numero_geracoes):
-            soma_avaliacao = self.soma_avaliacao()
-            nova_populacao = []
+        for generation in range(generations):
+            sum_avaliation = self.sum_avaliation()
+            new_population = []
             # selecionar dois pais para fazer o crossover a partir da roleta, fazendo um loop de 10 vezes, pois depois do crossover ele gera dois filhos cada
-            for _ in range(0, self.tamanho_populacao, 2):
+            for _ in range(0, self.size_population, 2):
                 #retorna os indices dos pais
-                pai1 = self.seleciona_pai(soma_avaliacao)
-                pai2 = self.seleciona_pai(soma_avaliacao)
+                dad1 = self.seleciona_pai(sum_avaliation)
+                dad2 = self.seleciona_pai(sum_avaliation)
 
                 #Novos individuos na lista
-                filhos = self.populacao[pai1].crossover(self.populacao[pai2])
+                sons = self.population[dad1].crossover(self.population[dad2])
 
                 #adiciona os 2 novos individuos na nova população
-                nova_populacao.append(filhos[0].mutacao(taxa_mutacao))
-                nova_populacao.append(filhos[1].mutacao(taxa_mutacao))
+                new_population.append(sons[0].mutation(mutation_rate))
+                new_population.append(sons[1].mutation(mutation_rate))
 
             #Passa a nova população, com 20 individuos  possivelmente melhores como novo parametro, para sobrescrever a antiga
-            self.populacao = list(nova_populacao)
-            for individuo in self.populacao:
-                individuo.avaliacao()
+            self.population = list(new_population)
+            for individual in self.population:
+                individual.fitness()
             
             #ordena novamente
-            self.ordena_populacao()
+            self.order_population()
 
-            self.visualiza_geracao()
-            melhor = self.populacao[0]
-            self.melhor_individuo(melhor)
-        print(f'''Melhor solucao 
-             G = {self.melhor_solucao.geracao}
-             Valor = {self.melhor_solucao.nota_avaliacao}
-             Espaco = {self.melhor_solucao.espaco}
-             Cromossomo = {self.melhor_solucao.cromossomo}
+            self.show_generation()
+            better = self.population[0]
+            self.better_individual(better)
+        print(f'''Best Solution 
+             G = {self.best_solution.generation}
+             Value = {self.best_solution.note_avaliation}
+             Space = {self.best_solution.space}
+             Chromossome = {self.best_solution.chromossome}
             ''')
-        return self.melhor_solucao.cromossomo
+        return self.best_solution.chromossome
 
         
 
@@ -226,74 +199,72 @@ class AlgoritmoGenetico():
 
 
 if __name__ == '__main__':
-    lista_produtos = []
-    lista_produtos.append(Produto('Geladeira Dako', 0.751, 999.90))
-    lista_produtos.append(Produto('Iphone 6', 0.0000899, 2911.12))
-    lista_produtos.append(Produto('TV 55', 0.400, 4346.99))
-    lista_produtos.append(Produto('TV 50', 0.290, 3999.90))
-    lista_produtos.append(Produto('TV 42', 0.200, 2999.00))
-    lista_produtos.append(Produto('Notebook Dell', 0.00350, 2499.00))
-    lista_produtos.append(Produto('Ventilador Panasonic', 0.496, 199.90))
-    lista_produtos.append(Produto('Microondas Eletrolux', 0.0424, 308.66))
-    lista_produtos.append(Produto('Microondas LG', 0.0544, 429.90))
-    lista_produtos.append(Produto('Microondas Panasonic', 0.0319, 299.29))
-    lista_produtos.append(Produto('Geladeira Brastemp', 0.635, 849.00))
-    lista_produtos.append(Produto('Geladeira Consul', 0.870, 1199.89))
-    lista_produtos.append(Produto('Notebook Lenovo', 0.498, 1999.90))
-    lista_produtos.append(Produto('Notebook Asus', 0.527, 3999.00))
-
-    lista_produtos.append(Produto('Geladeira Frost', 0.721, 2999.90))
-    lista_produtos.append(Produto('Apple Watch 6', 0.0000899, 1111.12))
-    lista_produtos.append(Produto('TV 85', 0.650, 6346.99))
-    lista_produtos.append(Produto('TV 70', 0.590, 5999.90))
-    lista_produtos.append(Produto('TV 60', 0.510, 4999.00))
-    lista_produtos.append(Produto('Notebook Apple', 0.0350, 10499.00))
-    lista_produtos.append(Produto('Refrigerador Novo Mundo', 0.696, 3199.90))
-    lista_produtos.append(Produto('Iphone X ', 0.000424, 4508.66))
-    lista_produtos.append(Produto('Tablet Sansung LG', 0.0544, 1429.90))
-    lista_produtos.append(Produto('Sofá 3 lugares', 0.5909, 5099.29))
-    lista_produtos.append(Produto('Sofá Retrátil', 0.335, 849.00))
-    lista_produtos.append(Produto('Geladeira Magazine', 0.870, 2199.89))
-    lista_produtos.append(Produto('Refrigerador Brastemp', 0.792, 5209.90))
-    lista_produtos.append(Produto('Sofá Mobly', 0.927, 8959.00))
-
-    lista_produtos.append(Produto('Geladeira Frost 2', 0.7671, 2349.90))
-    lista_produtos.append(Produto('Apple Watch 6 2', 0.0003499, 1123.12))
-    lista_produtos.append(Produto('TV 88 2', 0.689, 6346.99))
-    lista_produtos.append(Produto('TV 75 2', 0.2350, 5369.90))
-    lista_produtos.append(Produto('TV 62 2', 0.230, 3499.00))
-    lista_produtos.append(Produto('Notebook Apple 2.0', 0.3650, 8959.00))
-    lista_produtos.append(Produto('Refrigerador Novo Mundo 2.0', 0.4326, 987.90))
-    lista_produtos.append(Produto('Iphone XR', 0.05424, 4218.66))
-    lista_produtos.append(Produto('Tablet Sansung Tab A', 0.564, 3229.90))
-    lista_produtos.append(Produto('Sofá 6 lugares ', 0.98509, 4599.29))
-    lista_produtos.append(Produto('Sofá Retrátil 2.0', 0.6575, 8939.00))
-    lista_produtos.append(Produto('Geladeira Magazine Turbo', 0.4900, 4599.89))
-    lista_produtos.append(Produto('Refrigerador Brastemp Master', 0.892, 2309.90))
-    lista_produtos.append(Produto('Rolex', 0.0007, 30000.00))
+    product_list = []
+    product_list.append(Product('Geladeira Dako', 0.751, 999.90))
+    product_list.append(Product('Iphone 6', 0.0000899, 2911.12))
+    product_list.append(Product('TV 55', 0.400, 4346.99))
+    product_list.append(Product('TV 50', 0.290, 3999.90))
+    product_list.append(Product('TV 42', 0.200, 2999.00))
+    product_list.append(Product('Notebook Dell', 0.00350, 2499.00))
+    product_list.append(Product('Ventilador Panasonic', 0.496, 199.90))
+    product_list.append(Product('Microondas Eletrolux', 0.0424, 308.66))
+    product_list.append(Product('Microondas LG', 0.0544, 429.90))
+    product_list.append(Product('Microondas Panasonic', 0.0319, 299.29))
+    product_list.append(Product('Geladeira Brastemp', 0.635, 849.00))
+    product_list.append(Product('Geladeira Consul', 0.870, 1199.89))
+    product_list.append(Product('Notebook Lenovo', 0.498, 1999.90))
+    product_list.append(Product('Notebook Asus', 0.527, 3999.00))
+    product_list.append(Product('Geladeira Frost', 0.721, 2999.90))
+    product_list.append(Product('Apple Watch 6', 0.0000899, 1111.12))
+    product_list.append(Product('TV 85', 0.650, 6346.99))
+    product_list.append(Product('TV 70', 0.590, 5999.90))
+    product_list.append(Product('TV 60', 0.510, 4999.00))
+    product_list.append(Product('Notebook Apple', 0.0350, 10499.00))
+    product_list.append(Product('Refrigerador Novo Mundo', 0.696, 3199.90))
+    product_list.append(Product('Iphone X ', 0.000424, 4508.66))
+    product_list.append(Product('Tablet Sansung LG', 0.0544, 1429.90))
+    product_list.append(Product('Sofá 3 lugares', 0.5909, 5099.29))
+    product_list.append(Product('Sofá Retrátil', 0.335, 849.00))
+    product_list.append(Product('Geladeira Magazine', 0.870, 2199.89))
+    product_list.append(Product('Refrigerador Brastemp', 0.792, 5209.90))
+    product_list.append(Product('Sofá Mobly', 0.927, 8959.00))
+    product_list.append(Product('Geladeira Frost 2', 0.7671, 2349.90))
+    product_list.append(Product('Apple Watch 6 2', 0.0003499, 1123.12))
+    product_list.append(Product('TV 88 2', 0.689, 6346.99))
+    product_list.append(Product('TV 75 2', 0.2350, 5369.90))
+    product_list.append(Product('TV 62 2', 0.230, 3499.00))
+    product_list.append(Product('Notebook Apple 2.0', 0.3650, 8959.00))
+    product_list.append(Product('Refrigerador Novo Mundo 2.0', 0.4326, 987.90))
+    product_list.append(Product('Iphone XR', 0.05424, 4218.66))
+    product_list.append(Product('Tablet Sansung Tab A', 0.564, 3229.90))
+    product_list.append(Product('Sofá 6 lugares ', 0.98509, 4599.29))
+    product_list.append(Product('Sofá Retrátil 2.0', 0.6575, 8939.00))
+    product_list.append(Product('Geladeira Magazine Turbo', 0.4900, 4599.89))
+    product_list.append(Product('Refrigerador Brastemp Master', 0.892, 2309.90))
+    product_list.append(Product('Rolex', 0.0007, 30000.00))
 
 
-    espacos = []
-    valores = []
-    nomes = []
+    spaces = []
+    values = []
+    names = []
 
-    for produto in lista_produtos:
-        espacos.append(produto.espaco)
-        valores.append(produto.valor)
-        nomes.append(produto.nome)
+    for product in product_list:
+        spaces.append(product.space)
+        values.append(product.value)
+        names.append(product.name)
 
-    limite = 5
-    numero_geracoes = 150
-    taxa_mutacao = 0.01
-    tamanho_populacao = 20
+    limit = 5
+    generations = 150
+    mutation_rate = 0.01
+    size_population = 20
 
     #inicializa o algoritmo passando o tamanho da população
-    ag = AlgoritmoGenetico(tamanho_populacao)
-    resultado = ag.resolver(taxa_mutacao,numero_geracoes, espacos, valores, limite)
-    print(resultado)
-    for i in range(len(lista_produtos)):
-        if resultado[i] == '1':
-            print(f'Nome = {lista_produtos[i].nome}, Espaco = {lista_produtos[i].espaco}, Valor = {lista_produtos[i].valor}')
+    ag = AlgoritmoGenetico(size_population)
+    result = ag.run(mutation_rate,generations, spaces, values, limit)
+
+    for i in range(len(product_list)):
+        if result[i] == '1':
+            print(f'Nome = {product_list[i].name}, Espaco = {product_list[i].space}, Valor = {product_list[i].value}')
 
 
 
