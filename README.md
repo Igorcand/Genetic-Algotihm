@@ -29,10 +29,10 @@ Feito isso, no final das gerações, o código tenderá a estar melhor que no co
 OBS: Quanto mais produtos existirem, maior será o cromossomo e mais demorado será para achar o resultado, então quanto maior a lista de produtos disponiveis maior terá que ser o numero de gerações.
 
 # Variáveis Globais
-limite = É o volume limite do caminhão, em metros cubicos (m3)
-numero de gerações = É quantas vezes o loop será rodado
-tamanho_população = É quantos cromossomos diferentes existirá em cada geração
-taxa_mutação = É a probabilidade de acontecer uma mutação no cromossomo
+- limite = É o volume limite do caminhão, em metros cubicos (m3)
+- numero de gerações = É quantas vezes o loop será rodado
+- tamanho_população = É quantos cromossomos diferentes existirá em cada geração
+- taxa_mutação = É a probabilidade de acontecer uma mutação no cromossomo
 
 # Technology used
 
